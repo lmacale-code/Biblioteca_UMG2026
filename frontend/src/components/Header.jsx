@@ -1,28 +1,45 @@
-export default function Header({ sections, activeSectionId }) {
+import { NavLink, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
+
+const links = [
+  { to: "/", label: "Inicio", roles: ["admin", "encargado", "socio"] },
+  { to: "/libros", label: "Libros", roles: ["admin", "encargado", "socio"] },
+  { to: "/inventario", label: "Inventario", roles: ["admin", "encargado"] },
+  { to: "/rentas", label: "Rentas", roles: ["admin", "encargado"] },
+  { to: "/socios", label: "Socios", roles: ["admin", "encargado"] },
+  { to: "/informes", label: "Informes", roles: ["admin"] },
+  { to: "/historial", label: "Historial", roles: ["admin", "encargado", "socio"] },
+  { to: "/configuracion", label: "Configuración", roles: ["admin"] },
+];
+
+export default function Header() {
+  const { user, logout } = useAuth();
+
   return (
     <header className="site-header">
       <div className="header-content">
-        <a className="brand" href="#libros" aria-label="Biblioteca UMG, inicio">
+        <Link className="brand" to="/" aria-label="Biblioteca UMG, inicio">
           <span className="brand-mark" aria-hidden="true">B</span>
           <span>
             <strong>Biblioteca UMG</strong>
             <small>Centro de gestión</small>
           </span>
-        </a>
+        </Link>
         <nav className="primary-navigation" aria-label="Navegación principal">
-          {sections.map((section) => (
-            <a
-              key={section.id}
+          {links.filter((link) => link.roles.includes(user?.rol)).map((link) => (
+            <NavLink
+              key={link.to}
               className="navigation-link"
-              href={`#${section.id}`}
-              aria-current={activeSectionId === section.id ? "page" : undefined}
+              to={link.to}
+              end={link.to === "/"}
             >
-              {section.label}
-            </a>
+              {link.label}
+            </NavLink>
           ))}
-          <a className="logout-link" href="#login">
+          <span aria-label="Usuario conectado">{user?.nombre}</span>
+          <button className="logout-link" onClick={logout} type="button">
             Cerrar sesión
-          </a>
+          </button>
         </nav>
       </div>
     </header>
