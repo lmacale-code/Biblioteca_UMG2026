@@ -1,7 +1,9 @@
 import { Router } from "express";
-import { notImplemented } from "./controller.js";
+import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { dashboard } from "./controller.js";
 
 const router = Router();
-router.get("/", notImplemented);
+
+router.get("/", requireAuth, requireRole("admin", "encargado"), dashboard);
 
 export default router;

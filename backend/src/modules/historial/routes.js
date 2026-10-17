@@ -1,8 +1,10 @@
 import { Router } from "express";
-import { notImplemented } from "./controller.js";
+import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { historialSocio, miHistorial } from "./controller.js";
 
 const router = Router();
-router.get("/mi", notImplemented);
-router.get("/:socioId", notImplemented);
+
+router.get("/mi", requireAuth, miHistorial);
+router.get("/:socioId", requireAuth, requireRole("admin"), historialSocio);
 
 export default router;

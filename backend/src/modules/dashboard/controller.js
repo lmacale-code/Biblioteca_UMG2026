@@ -1,8 +1,8 @@
-import { notImplemented as notImplementedService } from "./service.js";
+import { obtenerDashboard } from "./service.js";
 
-export async function notImplemented(_request, _response, next) {
+export async function dashboard(_request, response, next) {
   try {
-    await notImplementedService();
+    response.json(await obtenerDashboard());
   } catch (error) {
     next(error);
   }
