@@ -97,7 +97,7 @@ export default function Libros() {
     const book = {
       titulo: form.get("titulo").trim(),
       autor: form.get("autor").trim(),
-      isbn: form.get("isbn").trim() || null,
+      isbn: form.get("isbn").trim(),
       categoria_id: Number(form.get("categoria_id")),
       anio: Number(form.get("anio")),
       total_ejemplares: Number(form.get("total_ejemplares")),
@@ -282,7 +282,7 @@ export default function Libros() {
             <form onSubmit={submitBook} style={{ display: "grid", gap: 12 }}>
               <label>Título<input name="titulo" required maxLength="255" defaultValue={modalBook.titulo || ""} style={fieldStyle} /></label>
               <label>Autor<input name="autor" required maxLength="255" defaultValue={modalBook.autor || ""} style={fieldStyle} /></label>
-              <label>ISBN<input name="isbn" maxLength="20" defaultValue={modalBook.isbn || ""} style={fieldStyle} /></label>
+              <label>ISBN<input name="isbn" required maxLength="20" defaultValue={modalBook.isbn || ""} style={fieldStyle} /></label>
               <label>Categoría
                 <span style={{ display: "flex", gap: 8 }}>
                   <select name="categoria_id" required value={selectedCategoryId} onChange={(event) => setSelectedCategoryId(event.target.value)} style={fieldStyle}>
