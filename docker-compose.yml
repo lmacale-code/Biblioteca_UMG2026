@@ -6,7 +6,7 @@ services:
       MYSQL_ROOT_PASSWORD: umg_root_2026
       MYSQL_DATABASE: biblioteca_umg
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - biblioteca_mysql_data:/var/lib/mysql
 
