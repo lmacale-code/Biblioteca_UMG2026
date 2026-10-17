@@ -1,6 +1,12 @@
 import pool from "../../db/pool.js";
 import { calcularMulta } from "../../utils/multas.js";
 
+function httpError(status, message) {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+}
+
 function fechaGuatemala() {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Guatemala",
@@ -12,13 +18,10 @@ function fechaGuatemala() {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
-function httpError(status, message) {
-  const error = new Error(message);
-  error.status = status;
-  return error;
-}
-
 function validarId(id) {
+  if (typeof id !== "string" && typeof id !== "number") {
+    throw httpError(400, "El identificador del socio no es válido");
+  }
   const numericId = Number(id);
   if (!Number.isSafeInteger(numericId) || numericId < 1) {
     throw httpError(400, "El identificador del socio no es válido");
@@ -33,7 +36,11 @@ function validarFecha(value, label) {
   }
   const [year, month, day] = value.split("-").map(Number);
   const date = new Date(Date.UTC(year, month - 1, day));
-  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+  if (
+    date.getUTCFullYear() !== year
+    || date.getUTCMonth() !== month - 1
+    || date.getUTCDate() !== day
+  ) {
     throw httpError(400, `La fecha ${label} no es válida`);
   }
   return value;
@@ -62,14 +69,26 @@ function validarFiltros(filtros = {}) {
   return { estado, busqueda, desde, hasta };
 }
 
-export async function listarHistorial(socioId, filtros, permitirUsuarioNoSocio = false) {
+async function obtenerMultaPorDia() {
+  const [rows] = await pool.query(
+    "SELECT valor FROM configuracion WHERE clave = ? LIMIT 1",
+    ["multa_por_dia"],
+  );
+  const multaPorDia = Number(rows[0]?.valor ?? 5);
+  if (!Number.isFinite(multaPorDia) || multaPorDia < 0) {
+    throw httpError(500, "No se pudo consultar la configuración de multas");
+  }
+  return multaPorDia;
+}
+
+export async function listarHistorial(socioId, filtros = {}, permitirUsuarioNoSocio = false) {
   const id = validarId(socioId);
   const { estado, busqueda, desde, hasta } = validarFiltros(filtros);
-  const [socios] = await pool.query(
+  const [usuarios] = await pool.query(
     `SELECT id FROM usuarios WHERE id = ? ${permitirUsuarioNoSocio ? "" : "AND rol = 'socio'"} LIMIT 1`,
     [id],
   );
-  if (!socios[0]) {
+  if (!usuarios[0]) {
     throw httpError(404, "No se encontró el socio");
   }
 
@@ -94,35 +113,35 @@ export async function listarHistorial(socioId, filtros, permitirUsuarioNoSocio =
   }
 
   const [rows] = await pool.query(
-    `SELECT p.id, p.libro_id AS libroId, l.titulo, l.autor, l.isbn,
-            p.fecha_salida AS fechaSalida, p.fecha_limite AS fechaLimite,
-            p.fecha_devolucion AS fechaDevolucion, p.estado,
-            p.dias_retraso AS diasRetrasoRegistrados, p.multa_monto AS multaRegistrada,
-            p.multa_pagada AS multaPagada
-     FROM prestamos p
-     INNER JOIN libros l ON l.id = p.libro_id
-     WHERE ${where.join(" AND ")}
-     ORDER BY p.fecha_salida DESC, p.id DESC
-     LIMIT 250`,
+    `SELECT p.id, p.libro_id, l.titulo, l.autor, l.isbn,
+            p.fecha_salida, p.fecha_limite, p.fecha_devolucion, p.estado,
+            p.dias_retraso, p.multa_monto, p.multa_pagada
+       FROM prestamos p
+       INNER JOIN libros l ON l.id = p.libro_id
+      WHERE ${where.join(" AND ")}
+      ORDER BY p.fecha_salida DESC, p.id DESC
+      LIMIT 250`,
     parameters,
   );
-  const [[configuracion]] = await pool.query(
-    "SELECT valor FROM configuracion WHERE clave = ? LIMIT 1",
-    ["multa_por_dia"],
-  );
-  const multaPorDia = Number(configuracion?.valor ?? 5);
+  const multaPorDia = await obtenerMultaPorDia();
   const hoy = fechaGuatemala();
 
-  const prestamos = rows.map((prestamo) => {
-    if (prestamo.estado !== "activo") {
+  return rows.map((prestamo) => {
+    const multaGuardada = Number(prestamo.multa_monto) || 0;
+    const retrasoGuardado = Number(prestamo.dias_retraso) || 0;
+    if (prestamo.estado !== "activo" || prestamo.fecha_limite >= hoy) {
       return {
         ...prestamo,
-        diasRetraso: Number(prestamo.diasRetrasoRegistrados) || 0,
-        multaMonto: Number(prestamo.multaRegistrada) || 0,
+        dias_retraso: retrasoGuardado,
+        multa_monto: Number(multaGuardada.toFixed(2)),
       };
     }
-    const multa = calcularMulta(prestamo.fechaLimite, hoy, multaPorDia);
-    return { ...prestamo, diasRetraso: multa.diasRetraso, multaMonto: multa.monto };
+
+    const multaActual = calcularMulta(prestamo.fecha_limite, hoy, multaPorDia);
+    return {
+      ...prestamo,
+      dias_retraso: Math.max(retrasoGuardado, multaActual.diasRetraso),
+      multa_monto: Number(Math.max(multaGuardada, multaActual.monto).toFixed(2)),
+    };
   });
-  return prestamos;
 }

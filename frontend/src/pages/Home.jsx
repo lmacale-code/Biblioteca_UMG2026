@@ -5,20 +5,26 @@ import Header from "../components/Header.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import "./socios/socios.css";
 
-const currency = new Intl.NumberFormat("es-GT", { style: "currency", currency: "GTQ" });
+const moneda = new Intl.NumberFormat("es-GT", { style: "currency", currency: "GTQ" });
+
+function fechaLegible(value) {
+  if (!value) return "—";
+  const [year, month, day] = String(value).slice(0, 10).split("-").map(Number);
+  return new Intl.DateTimeFormat("es-GT", { dateStyle: "medium" })
+    .format(new Date(year, month - 1, day));
+}
 
 function Dashboard({ user }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const isSocio = user?.rol === "socio";
 
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
     setError("");
-    apiRequest(user?.rol === "socio" ? "/historial/mi" : "/dashboard", {
-      signal: controller.signal,
-    })
+    apiRequest(isSocio ? "/historial/mi" : "/dashboard", { signal: controller.signal })
       .then(setData)
       .catch((requestError) => {
         if (requestError.name !== "AbortError") setError(requestError.message);
@@ -27,106 +33,114 @@ function Dashboard({ user }) {
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [user?.rol]);
+  }, [isSocio]);
 
-  const isSocio = user?.rol === "socio";
-  const prestamosSocio = (data?.prestamos ?? []).filter((prestamo) => prestamo.estado === "activo");
-  const multaSocio = prestamosSocio.reduce(
-    (total, prestamo) => total + (Number(prestamo.multaMonto) || 0),
-    0,
-  );
+  const prestamosSocio = (data?.prestamos ?? []).filter((loan) => loan.estado === "activo");
+  const deudaSocio = prestamosSocio.reduce((total, loan) => (
+    total + (Number(loan.multa_monto) || 0)
+  ), 0);
   const disponibilidad = data?.disponibilidad ?? {};
-  const cards = isSocio
-    ? [
-        ["Préstamos activos", prestamosSocio.length],
-        ["Préstamos vencidos", prestamosSocio.filter((prestamo) => Number(prestamo.diasRetraso) > 0).length],
-        ["Multas acumuladas", currency.format(multaSocio)],
-      ]
-    : [
-        ["Títulos", disponibilidad.titulos],
-        ["Ejemplares", disponibilidad.ejemplares],
-        ["Disponibles", disponibilidad.disponibles],
-        ["Prestados", disponibilidad.prestados],
-        ["Préstamos vencidos", disponibilidad.vencidos],
-      ];
 
   return (
     <section className="module-page" aria-labelledby="dashboard-title">
       <div className="module-heading">
         <p className="eyebrow">{isSocio ? "Mi biblioteca" : "Resumen general"}</p>
-        <h1 id="dashboard-title">Bienvenido{user?.nombre ? `, ${user.nombre}` : ""}</h1>
+        <h1 id="dashboard-title">
+          {isSocio ? `Hola, ${user?.nombre ?? ""}` : "Dashboard"}
+        </h1>
         <p className="module-description">
           {isSocio
-            ? "Consulta el estado de tus préstamos y fechas de devolución."
-            : "Indicadores actuales de la biblioteca y seguimiento de préstamos."}
+            ? "Consulta el estado de tus préstamos, fechas límite y multas."
+            : "Disponibilidad de la colección, préstamos destacados y saldos pendientes."}
         </p>
       </div>
+
       {error && <p className="socios-alert" role="alert">{error}</p>}
       {loading ? (
-        <p role="status">Cargando resumen…</p>
-      ) : (
+        <p className="module-card" role="status">Cargando información...</p>
+      ) : !error && isSocio ? (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", gap: "1rem" }}>
-            {cards.map(([label, value]) => (
-              <article className="module-card" key={label}>
-                <div>
-                  <p>{label}</p>
-                  <h2>{value ?? "—"}</h2>
-                </div>
-              </article>
-            ))}
-          </div>
-          {isSocio ? (
-            <section aria-labelledby="recent-loans-title" style={{ marginTop: "2rem" }}>
-              <h2 id="recent-loans-title">Mis préstamos activos</h2>
-              {prestamosSocio.length ? (
-                <ul>
-                  {prestamosSocio.map((loan) => (
-                    <li key={loan.id}>
-                      <strong>{loan.titulo}</strong> — vence {String(loan.fechaLimite).slice(0, 10)}
-                      {" · Multa: "}{currency.format(Number(loan.multaMonto) || 0)}
-                      {Number(loan.diasRetraso) > 0 ? " · Vencido" : ""}
-                    </li>
-                  ))}
-                </ul>
-              ) : <p>No tienes préstamos activos.</p>}
-              <Link to="/historial">Ver mi historial</Link>
+          <section className="module-card" aria-label="Resumen de préstamos">
+            <div>
+              <h2>Tu situación actual</h2>
+              <p>
+                Préstamos activos: <strong>{prestamosSocio.length}</strong>
+                {" · "}Multas acumuladas: <strong>{moneda.format(deudaSocio)}</strong>
+              </p>
+            </div>
+          </section>
+          {prestamosSocio.length === 0 ? (
+            <section className="module-card">
+              <div><h2>Sin préstamos activos</h2><p>No tienes libros pendientes de devolución.</p></div>
             </section>
-          ) : (
-            <section style={{ marginTop: "2rem" }}>
-              <div className="module-heading">
-                <h2>Libros más prestados</h2>
+          ) : prestamosSocio.map((loan) => (
+            <article className="module-card" key={loan.id}>
+              <div>
+                <h2>{loan.titulo}</h2>
+                <p>
+                  Fecha límite: <strong>{fechaLegible(loan.fecha_limite)}</strong>
+                  {" · "}Multa: <strong>{moneda.format(Number(loan.multa_monto) || 0)}</strong>
+                </p>
               </div>
+              <span className="module-status">
+                {Number(loan.dias_retraso) > 0 ? "Vencido" : "Activo"}
+              </span>
+            </article>
+          ))}
+          <Link to="/historial">Ver mi historial</Link>
+        </>
+      ) : !error && (user?.rol === "admin" || user?.rol === "encargado") ? (
+        <>
+          <section className="module-card" aria-labelledby="availability-title">
+            <div>
+              <h2 id="availability-title">Disponibilidad en tiempo real</h2>
+              <p>
+                Títulos: <strong>{disponibilidad.titulosTotales ?? "—"}</strong>
+                {" · "}Ejemplares: <strong>{disponibilidad.ejemplaresTotales ?? "—"}</strong>
+                {" · "}Disponibles: <strong>{disponibilidad.disponibles ?? "—"}</strong>
+                {" · "}Prestados: <strong>{disponibilidad.prestados ?? "—"}</strong>
+                {" · "}Vencidos: <strong>{disponibilidad.prestamosVencidos ?? "—"}</strong>
+              </p>
+            </div>
+          </section>
+          <section className="module-card" aria-labelledby="popular-books-title">
+            <div>
+              <h2 id="popular-books-title">Libros más prestados</h2>
               <div className="socios-table-wrap">
                 <table className="socios-table">
                   <thead>
                     <tr><th>Libro</th><th>Autor</th><th>Préstamos</th></tr>
                   </thead>
                   <tbody>
-                    {data?.librosMasPrestados?.length ? data.librosMasPrestados.map((libro) => (
-                      <tr key={libro.id}>
-                        <td>{libro.titulo}</td>
-                        <td>{libro.autor}</td>
-                        <td>{libro.cantidad_prestamos}</td>
+                    {data?.librosMasPrestados?.length ? data.librosMasPrestados.map((book) => (
+                      <tr key={book.id}>
+                        <td>{book.titulo}</td>
+                        <td>{book.autor}</td>
+                        <td>{book.cantidadPrestamos}</td>
                       </tr>
                     )) : <tr><td colSpan="3">Aún no hay préstamos registrados.</td></tr>}
                   </tbody>
                 </table>
               </div>
-              <h2 style={{ marginTop: "2rem" }}>Socios con deudas</h2>
+            </div>
+          </section>
+          <section className="module-card" aria-labelledby="debts-title">
+            <div>
+              <h2 id="debts-title">Socios con deudas</h2>
               {data?.sociosConDeudas?.length ? (
                 <ul>
-                  {data.sociosConDeudas.map((socio) => (
-                    <li key={socio.id}>
-                      <strong>{socio.nombre}</strong> ({socio.carnet}) — {currency.format(socio.deuda_total)}
+                  {data.sociosConDeudas.map((member) => (
+                    <li key={member.socioId}>
+                      {member.nombre} ({member.carnet || "Sin carnet"}):{" "}
+                      <strong>{moneda.format(member.totalDeuda)}</strong>
                     </li>
                   ))}
                 </ul>
-              ) : <p>No hay socios con multas pendientes.</p>}
-            </section>
-          )}
+              ) : <p>No hay multas pendientes.</p>}
+            </div>
+          </section>
         </>
-      )}
+      ) : null}
     </section>
   );
 }
@@ -134,7 +148,7 @@ function Dashboard({ user }) {
 export default function Home() {
   const { user } = useAuth();
   const { pathname } = useLocation();
-  const isDashboard = pathname === "/";
+  const enInicio = pathname === "/";
 
   return (
     <div className="app-shell">
@@ -144,7 +158,7 @@ export default function Home() {
           <span className="status-dot" aria-hidden="true" />
           Universidad Mariano Gálvez de Guatemala
         </div>
-        {isDashboard ? <Dashboard user={user} /> : <Outlet />}
+        {enInicio ? <Dashboard user={user} /> : <Outlet />}
         <footer className="page-footer">
           <span>Sistema de biblioteca</span>
           <span>Interfaz de gestión</span>

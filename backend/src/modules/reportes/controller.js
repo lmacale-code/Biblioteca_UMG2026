@@ -82,8 +82,7 @@ function dibujarFila(doc, prestamo, bounds, total, generado) {
 
 function dibujarTotales(doc, prestamos, bounds, generado) {
   const totalMultas = prestamos.reduce((sum, prestamo) => sum + prestamo.monto, 0);
-  const height = 34;
-  if (doc.y + height > doc.page.height - doc.page.margins.bottom) {
+  if (doc.y + 34 > doc.page.height - doc.page.margins.bottom) {
     doc.addPage();
     dibujarEncabezado(doc, prestamos.length, generado);
   }

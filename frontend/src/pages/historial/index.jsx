@@ -19,16 +19,21 @@ export default function Historial() {
   const [hasta, setHasta] = useState("");
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadingSocios, setLoadingSocios] = useState(false);
   const [error, setError] = useState("");
   const isAdmin = user?.rol === "admin";
 
   useEffect(() => {
     if (!isAdmin) return undefined;
     const controller = new AbortController();
+    setLoadingSocios(true);
     apiRequest("/socios", { signal: controller.signal })
       .then((result) => setSocios(result.socios ?? []))
       .catch((requestError) => {
         if (requestError.name !== "AbortError") setError(requestError.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoadingSocios(false);
       });
     return () => controller.abort();
   }, [isAdmin]);
@@ -37,17 +42,16 @@ export default function Historial() {
     if (isAdmin && !socioId) {
       setPrestamos([]);
       setLoading(false);
-      setError("");
       return undefined;
     }
+
     const controller = new AbortController();
     const params = new URLSearchParams();
     if (estado) params.set("estado", estado);
     if (desde) params.set("desde", desde);
     if (hasta) params.set("hasta", hasta);
     if (q.trim()) params.set("q", q.trim());
-    const query = params.toString();
-    const suffix = query ? `?${query}` : "";
+    const suffix = params.size ? `?${params.toString()}` : "";
     const path = isAdmin
       ? `/historial/${encodeURIComponent(socioId)}${suffix}`
       : `/historial/mi${suffix}`;
@@ -81,13 +85,22 @@ export default function Historial() {
 
       <form
         onSubmit={(event) => event.preventDefault()}
-        style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))",
+          gap: "1rem",
+          marginBottom: "1.5rem",
+        }}
       >
         {isAdmin && (
           <label className="socios-field">
             Socio
-            <select value={socioId} onChange={(event) => setSocioId(event.target.value)}>
-              <option value="">Selecciona un socio</option>
+            <select
+              disabled={loadingSocios || socios.length === 0}
+              value={socioId}
+              onChange={(event) => setSocioId(event.target.value)}
+            >
+              <option value="">{loadingSocios ? "Cargando socios..." : "Selecciona un socio"}</option>
               {socios.map((socio) => (
                 <option key={socio.id} value={socio.id}>{socio.nombre} · {socio.carnet}</option>
               ))}
@@ -96,7 +109,12 @@ export default function Historial() {
         )}
         <label className="socios-field">
           Buscar libro
-          <input value={q} onChange={(event) => setQ(event.target.value)} maxLength={100} placeholder="Título, autor o ISBN" />
+          <input
+            value={q}
+            onChange={(event) => setQ(event.target.value)}
+            maxLength={100}
+            placeholder="Título, autor o ISBN"
+          />
         </label>
         <label className="socios-field">
           Estado
@@ -133,20 +151,20 @@ export default function Historial() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td className="socios-table-state" colSpan="8">Cargando historial…</td></tr>
+              <tr><td className="socios-table-state" colSpan="8">Cargando historial...</td></tr>
             ) : prestamos.length ? prestamos.map((prestamo) => (
               <tr
                 key={prestamo.id}
-                style={Number(prestamo.multaMonto) > 0 ? { backgroundColor: "#fff4f4" } : undefined}
+                style={Number(prestamo.multa_monto) > 0 ? { backgroundColor: "#fff4f4" } : undefined}
               >
                 <td>{prestamo.titulo}<br /><small>{prestamo.autor}</small></td>
-                <td>{fecha(prestamo.fechaSalida)}</td>
-                <td>{fecha(prestamo.fechaLimite)}</td>
-                <td>{fecha(prestamo.fechaDevolucion)}</td>
+                <td>{fecha(prestamo.fecha_salida)}</td>
+                <td>{fecha(prestamo.fecha_limite)}</td>
+                <td>{fecha(prestamo.fecha_devolucion)}</td>
                 <td>{prestamo.estado === "activo" ? "Activo" : "Devuelto"}</td>
-                <td>{prestamo.diasRetraso} día(s)</td>
-                <td>{moneda.format(Number(prestamo.multaMonto) || 0)}</td>
-                <td>{prestamo.multaPagada ? "Sí" : "No"}</td>
+                <td>{Number(prestamo.dias_retraso) || 0} día(s)</td>
+                <td>{moneda.format(Number(prestamo.multa_monto) || 0)}</td>
+                <td>{prestamo.multa_pagada ? "Sí" : "No"}</td>
               </tr>
             )) : (
               <tr><td className="socios-table-state" colSpan="8">

@@ -3,7 +3,6 @@ import { requireAuth, requireRole } from "../../middleware/auth.js";
 import { obtener } from "./controller.js";
 
 const router = Router();
-router.use(requireAuth, requireRole("admin", "encargado"));
-router.get("/", obtener);
+router.get("/", requireAuth, requireRole("admin", "encargado"), obtener);
 
 export default router;

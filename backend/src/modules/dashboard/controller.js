@@ -1,6 +1,6 @@
 import { obtenerDashboard } from "./service.js";
 
-export async function obtener(request, response, next) {
+export async function obtener(_request, response, next) {
   try {
     response.json(await obtenerDashboard());
   } catch (error) {
