@@ -1,0 +1,14 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: umg_root_2026
+      MYSQL_DATABASE: biblioteca_umg
+    ports:
+      - "3307:3306"
+    volumes:
+      - biblioteca_mysql_data:/var/lib/mysql
+
+volumes:
+  biblioteca_mysql_data:

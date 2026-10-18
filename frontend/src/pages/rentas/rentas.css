@@ -1,0 +1,249 @@
+.rentas-page {
+  overflow: visible;
+}
+
+.rentas-panel {
+  position: relative;
+  z-index: 1;
+  margin-top: 26px;
+  padding: 25px;
+  border: 1px solid rgb(255 255 255 / 68%);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 97%);
+  box-shadow: 0 13px 32px rgb(3 35 71 / 18%);
+}
+
+.rentas-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.rentas-section-heading h2 {
+  margin: 0;
+  color: #163b61;
+  font-size: 1.16rem;
+}
+
+.rentas-eyebrow {
+  margin: 0 0 6px;
+  color: #0784a7;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.rentas-form {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr) auto;
+  align-items: end;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.rentas-field {
+  display: grid;
+  gap: 7px;
+  color: #284a6b;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.rentas-field input,
+.rentas-field select {
+  width: 100%;
+  min-height: 43px;
+  padding: 9px 11px;
+  border: 1px solid #cbd9e4;
+  border-radius: 4px;
+  background: #fff;
+  color: #17314e;
+}
+
+.rentas-field input:focus,
+.rentas-field select:focus {
+  border-color: #0784a7;
+  outline: 3px solid rgb(8 183 214 / 17%);
+}
+
+.rentas-primary-button,
+.rentas-secondary-button {
+  min-height: 42px;
+  padding: 10px 15px;
+  border: 1px solid #0879a9;
+  border-radius: 4px;
+  background: #0879a9;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: background-color 150ms ease, opacity 150ms ease;
+}
+
+.rentas-primary-button:hover,
+.rentas-secondary-button:hover {
+  background: #075f88;
+}
+
+.rentas-primary-button:disabled,
+.rentas-secondary-button:disabled,
+.rentas-text-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.rentas-secondary-button {
+  min-height: 37px;
+  border-color: #c7d9e5;
+  background: #f5fafc;
+  color: #17608a;
+}
+
+.rentas-secondary-button:hover {
+  background: #e9f5f9;
+}
+
+.rentas-help {
+  margin: 12px 0 0;
+  color: #6d8095;
+  font-size: 0.78rem;
+}
+
+.rentas-alert,
+.rentas-notice {
+  position: relative;
+  z-index: 1;
+  margin: 17px 0 0;
+  padding: 12px 15px;
+  border: 1px solid #f2c7c7;
+  border-radius: 4px;
+  background: #fff4f4;
+  color: #923d3d;
+  font-size: 0.88rem;
+}
+
+.rentas-notice {
+  border-color: #bfe5d4;
+  background: #f1fbf6;
+  color: #286c4a;
+}
+
+.rentas-table-wrap {
+  overflow-x: auto;
+  margin-top: 18px;
+  border: 1px solid #dce6ed;
+  border-radius: 5px;
+}
+
+.rentas-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #28445f;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.rentas-table th,
+.rentas-table td {
+  padding: 12px 11px;
+  border-bottom: 1px solid #e5edf2;
+  vertical-align: middle;
+}
+
+.rentas-table th {
+  background: #f3f8fb;
+  color: #4e6a82;
+  font-size: 0.69rem;
+  font-weight: 750;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rentas-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.rentas-table td strong,
+.rentas-table td small {
+  display: block;
+}
+
+.rentas-table td strong {
+  color: #1e3e5d;
+  font-weight: 700;
+}
+
+.rentas-table td small {
+  margin-top: 4px;
+  color: #71869a;
+  font-size: 0.7rem;
+}
+
+.rentas-status {
+  display: inline-block;
+  padding: 5px 8px;
+  border-radius: 3px;
+  font-size: 0.68rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.rentas-status.is-active {
+  background: #e8f7f0;
+  color: #25734d;
+}
+
+.rentas-status.is-overdue {
+  background: #fff0e8;
+  color: #a44826;
+}
+
+.rentas-status.is-returned {
+  background: #edf3f8;
+  color: #5c7185;
+}
+
+.rentas-actions {
+  white-space: nowrap;
+}
+
+.rentas-text-button {
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #0877a7;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.rentas-text-button:hover {
+  text-decoration: underline;
+}
+
+.rentas-text-button.is-pay {
+  color: #a26311;
+}
+
+.rentas-table-state {
+  padding: 27px !important;
+  color: #71869a;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .rentas-panel {
+    padding: 19px;
+  }
+
+  .rentas-form {
+    grid-template-columns: 1fr;
+  }
+
+  .rentas-primary-button {
+    justify-self: start;
+  }
+}
