@@ -169,18 +169,23 @@ a {
   align-self: center;
   margin-left: 11px;
   padding: 10px 15px;
-  border: 1px solid rgb(255 255 255 / 52%);
+  border: 1px solid #073568;
   border-radius: 5px;
   color: #fff;
+  background: #073568;
   font-size: 0.82rem;
   font-weight: 650;
   text-decoration: none;
-  transition: background-color 160ms ease, border-color 160ms ease;
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
 }
 
-.logout-link:hover {
-  border-color: #fff;
-  background: rgb(255 255 255 / 14%);
+.logout-link:hover,
+.logout-link:active,
+.logout-link:focus-visible {
+  border-color: #38bdf8;
+  color: #073568;
+  background: #38bdf8;
 }
 
 .navigation-link:focus-visible,

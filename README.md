@@ -52,6 +52,12 @@ En Windows, los comandos de npm usan `npm.cmd` para evitar el bloqueo de `npm.ps
 
 	El backend queda disponible en `http://localhost:3001`; `GET /api/health` devuelve el estado de la API.
 
+	Si al iniciar aparece `Failed running 'src/index.js'` y PowerShell pregunta `¿Desea terminar el trabajo por lotes (S/N)?`, responde `S`. Después, desde la carpeta `backend`, inicia el servidor con:
+
+	```bash
+	npm.cmd start
+	```
+
 7. En otra terminal, inicia el frontend:
 
 	```bash
