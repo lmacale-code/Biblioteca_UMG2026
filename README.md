@@ -10,6 +10,8 @@ Sistema de gestión de biblioteca de la Universidad Mariano Gálvez de Escuintla
 
 ## Instalación y desarrollo
 
+En Windows, los comandos de npm usan `npm.cmd` para evitar el bloqueo de `npm.ps1` que puede aplicar la política de ejecución de PowerShell. En macOS y Linux, reemplaza `npm.cmd` por `npm`.
+
 1. Instala MySQL 8 o inicia la alternativa con Docker Compose:
 
 	```bash
@@ -27,25 +29,25 @@ Sistema de gestión de biblioteca de la Universidad Mariano Gálvez de Escuintla
 3. Instala las dependencias del backend:
 
 	```bash
-	npm install
+	npm.cmd install
 	```
 
 4. Crea la base de datos y sus tablas:
 
 	```bash
-	npm run db:init
+	npm.cmd run db:init
 	```
 
 5. Carga los datos de prueba:
 
 	```bash
-	npm run seed
+	npm.cmd run seed
 	```
 
 6. Inicia el backend:
 
 	```bash
-	npm run dev
+	npm.cmd run dev
 	```
 
 	El backend queda disponible en `http://localhost:3001`; `GET /api/health` devuelve el estado de la API.
@@ -54,8 +56,8 @@ Sistema de gestión de biblioteca de la Universidad Mariano Gálvez de Escuintla
 
 	```bash
 	cd frontend
-	npm install
-	npm run dev
+	npm.cmd install
+	npm.cmd run dev
 	```
 
 	Vite muestra la URL local del frontend al iniciar.
