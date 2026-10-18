@@ -147,7 +147,13 @@ export async function listarLibros(query = {}) {
     [...parameters, limit, offset],
   );
 
-  return { items, total: Number(countRows[0].total), page, limit };
+  return {
+    libros: items,
+    items,
+    total: Number(countRows[0].total),
+    page,
+    limit,
+  };
 }
 
 export async function obtenerLibro(id) {
