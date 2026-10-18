@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   getBooks,
   getCategories,
@@ -7,6 +8,7 @@ import {
   saveBook,
   saveCategory,
 } from "./api.js";
+import "./libros.css";
 
 const actionButton = {
   padding: "9px 13px",
@@ -84,6 +86,16 @@ export default function Libros() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!modalBook) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [modalBook]);
 
   async function submitSearch(event) {
     event.preventDefault();
@@ -268,23 +280,23 @@ export default function Libros() {
         )}
       </div>
 
-      {modalBook && (
+      {modalBook && createPortal(
         <div
+          className="libros-modal-backdrop"
           role="presentation"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget && !saving) setModalBook(null);
           }}
-          style={{ position: "fixed", inset: 0, zIndex: 5, display: "grid", placeItems: "center", padding: 18, background: "rgb(4 27 48 / 58%)" }}
         >
-          <section role="dialog" aria-modal="true" aria-labelledby="book-form-title" style={{ width: "min(100%, 580px)", maxHeight: "90vh", overflowY: "auto", padding: 26, borderRadius: 7, background: "#fff", boxShadow: "0 24px 70px rgb(0 0 0 / 25%)" }}>
-            <h2 id="book-form-title" style={{ marginTop: 0, color: "#163b61" }}>{modalBook.id ? "Editar libro" : "Agregar libro"}</h2>
-            {error && <p role="alert" style={{ color: "#a32828" }}>{error}</p>}
-            <form onSubmit={submitBook} style={{ display: "grid", gap: 12 }}>
+          <section className="libros-modal" role="dialog" aria-modal="true" aria-labelledby="book-form-title">
+            <h2 id="book-form-title">{modalBook.id ? "Editar libro" : "Agregar libro"}</h2>
+            {error && <p role="alert" className="libros-form-error">{error}</p>}
+            <form className="libros-form" onSubmit={submitBook}>
               <label>Título<input name="titulo" required maxLength="255" defaultValue={modalBook.titulo || ""} style={fieldStyle} /></label>
               <label>Autor<input name="autor" required maxLength="255" defaultValue={modalBook.autor || ""} style={fieldStyle} /></label>
               <label>ISBN<input name="isbn" required maxLength="20" defaultValue={modalBook.isbn || ""} style={fieldStyle} /></label>
               <label>Categoría
-                <span style={{ display: "flex", gap: 8 }}>
+                <span className="libros-form-row">
                   <select name="categoria_id" required value={selectedCategoryId} onChange={(event) => setSelectedCategoryId(event.target.value)} style={fieldStyle}>
                     <option value="" disabled>Selecciona una categoría</option>
                     {categories.map((category) => <option key={category.id} value={category.id}>{category.nombre}</option>)}
@@ -292,14 +304,14 @@ export default function Libros() {
                 </span>
               </label>
               <label>Nueva categoría
-                <span style={{ display: "flex", gap: 8 }}>
+                <span className="libros-form-row libros-category-row">
                   <input value={newCategoryName} onChange={(event) => setNewCategoryName(event.target.value)} maxLength="100" style={fieldStyle} />
                   <button type="button" onClick={addCategory} style={actionButton}>Crear categoría</button>
                 </span>
               </label>
               <label>Año<input name="anio" type="number" required min="1" defaultValue={modalBook.anio ?? ""} style={fieldStyle} /></label>
               <label>Total de ejemplares<input name="total_ejemplares" type="number" required min="0" defaultValue={modalBook.total_ejemplares ?? 0} style={fieldStyle} /></label>
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
+              <div className="libros-form-actions">
                 <button type="button" disabled={saving} onClick={() => setModalBook(null)} style={actionButton}>Cancelar</button>
                 <button type="submit" disabled={saving} style={{ ...actionButton, borderColor: "#0879bd", background: "#0879bd", color: "#fff" }}>
                   {saving ? "Guardando…" : "Guardar"}
@@ -307,7 +319,8 @@ export default function Libros() {
               </div>
             </form>
           </section>
-        </div>
+        </div>,
+        document.body,
       )}
     </section>
   );

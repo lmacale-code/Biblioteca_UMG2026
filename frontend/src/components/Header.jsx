@@ -1,5 +1,6 @@
 import { NavLink, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import umgLogo from "../assets/umg-logo.png";
 
 const links = [
   { to: "/", label: "Inicio", roles: ["admin", "encargado", "socio"] },
@@ -19,7 +20,7 @@ export default function Header() {
     <header className="site-header">
       <div className="header-content">
         <Link className="brand" to="/" aria-label="Biblioteca UMG, inicio">
-          <span className="brand-mark" aria-hidden="true">B</span>
+          <img className="brand-mark brand-logo" src={umgLogo} alt="" aria-hidden="true" />
           <span>
             <strong>Biblioteca UMG</strong>
             <small>Centro de gestión</small>

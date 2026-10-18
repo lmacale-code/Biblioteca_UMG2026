@@ -88,6 +88,15 @@ a {
   font-weight: 800;
 }
 
+.brand-logo {
+  display: block;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 17%);
+  object-fit: contain;
+}
+
 .brand strong,
 .brand small,
 .login-brand strong,
@@ -547,7 +556,7 @@ a {
   letter-spacing: 0.025em;
 }
 
-@media (max-width: 850px) {
+@media (max-width: 1000px) {
   .header-content {
     width: min(100% - 36px, 720px);
     flex-wrap: wrap;
